@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PhishGuard | Live Security Feed</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Inter', -apple-system, sans-serif; background-color: #0f172a; color: #f8fafc; margin: 0; padding: 40px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid #334155; padding-bottom: 20px; }
+        h1 { color: #3b82f6; margin: 0; }
+        .stats-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; text-align: center; }
+        .stat-value { font-size: 28px; font-weight: bold; color: #60a5fa; }
+        
+        .feed-container { background: #1e293b; border-radius: 12px; overflow: hidden; border: 1px solid #334155; }
+        .feed-item { display: flex; align-items: center; padding: 15px 20px; border-bottom: 1px solid #334155; animation: slideIn 0.5s ease-out; }
+        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-right: 20px; text-transform: uppercase; width: 80px; text-align: center; }
+        .bg-safe { background: #065f46; color: #34d399; }
+        .bg-phish { background: #7f1d1d; color: #f87171; }
+        .url-info { flex-grow: 1; }
+        .url-text { font-weight: 500; display: block; font-size: 14px; color: #e2e8f0; word-break: break-all; }
+        .reason-text { font-size: 12px; color: #94a3b8; }
+        
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 768px) { .stats-container { grid-template-columns: 1fr; } .header { flex-direction: column; gap: 10px; } }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🛡️ PhishGuard Command Center</h1>
+        <div id="connection-status" style="color: #10b981;">● System Live (Cloud Connected)</div>
+    </div>
+
+    <div class="stats-container">
+        <div class="stat-card"><div>Total Scans</div><div id="stat-total" class="stat-value">0</div></div>
+        <div class="stat-card"><div>Threats Blocked</div><div id="stat-phish" class="stat-value" style="color: #f87171;">0</div></div>
+        <div class="stat-card"><div>Safety Score</div><div id="stat-score" class="stat-value" style="color: #34d399;">100%</div></div>
+    </div>
+
+    <h3>Latest Activity Feed</h3>
+    <div id="feed" class="feed-container">
+        <div style="padding: 20px; color: #94a3b8;">Connecting to Supabase...</div>
+    </div>
+
+    <script>
+        // 1. PROJECT CONFIGURATION (PRE-FILLED)
+        const SUPABASE_URL = "https://gqoxufoyjhkyxxffclrl.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdxb3h1Zm95amhreXh4ZmZjbHJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMTg4MzUsImV4cCI6MjA4OTY5NDgzNX0.jdC_b3UbAt-oNAa-WfxCsjIBE88txZTSjTor2JTBJBg"; 
+
+        // 2. INITIALIZE CLIENT
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function updateDashboard() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('scans')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (data) {
+                    const total = data.length;
+                    const phishCount = data.filter(s => s.status.toUpperCase() === 'PHISHING').length;
+                    
+                    document.getElementById('stat-total').innerText = total;
+                    document.getElementById('stat-phish').innerText = phishCount;
+                    document.getElementById('stat-score').innerText = total > 0 ? Math.round(((total - phishCount) / total) * 100) + "%" : "100%";
+
+                    const feed = document.getElementById('feed');
+                    if (total === 0) {
+                        feed.innerHTML = '<div style="padding: 20px; color: #94a3b8;">No scans recorded yet. Try scanning a page with the extension!</div>';
+                    } else {
+                        feed.innerHTML = data.map(scan => `
+                            <div class="feed-item">
+                                <div class="status-badge ${scan.status.toUpperCase() === 'PHISHING' ? 'bg-phish' : 'bg-safe'}">
+                                    ${scan.status}
+                                </div>
+                                <div class="url-info">
+                                    <span class="url-text">${scan.url}</span>
+                                    <span class="reason-text">${scan.reason || 'AI Analysis complete.'}</span>
+                                </div>
+                                <div style="font-size: 11px; color: #64748b; min-width: 80px; text-align: right;">
+                                    ${new Date(scan.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (err) {
+                console.error("Dashboard Error:", err.message);
+                document.getElementById('connection-status').innerHTML = "● Connection Error";
+                document.getElementById('connection-status').style.color = "#ef4444";
+            }
+        }
+
+        // Refresh every 5 seconds
+        setInterval(updateDashboard, 5000);
+        updateDashboard();
+    </script>
+</body>
+</html>

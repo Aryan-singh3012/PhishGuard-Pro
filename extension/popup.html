@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishGuard Pro</title>
+    <style>
+        body {
+            width: 320px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 15px;
+            background-color: #ffffff;
+            text-align: center;
+        }
+        .header { margin-bottom: 15px; }
+        .logo { width: 50px; margin-bottom: 5px; }
+        
+        /* Status Box Styles */
+        .status-box {
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 15px;
+            transition: 0.3s;
+        }
+        .safe { background-color: #dcfce7; color: #166534; border: 1px solid #10b981; }
+        .danger { background-color: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
+        .loading { background-color: #f3f4f6; color: #374151; }
+
+        /* Risk Progress Bar */
+        .meter-container {
+            text-align: left;
+            margin-bottom: 15px;
+        }
+        .meter-label { font-size: 10px; font-weight: bold; color: #64748b; margin-bottom: 4px; }
+        .meter-bg {
+            width: 100%;
+            height: 10px;
+            background-color: #e2e8f0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        #risk-bar {
+            height: 100%;
+            width: 0%; /* Updated via JS */
+            background-color: #3b82f6;
+            transition: width 0.5s ease-in-out;
+        }
+
+        /* Information Text */
+        #current-url {
+            font-size: 11px;
+            color: #94a3b8;
+            word-break: break-all;
+            margin-bottom: 10px;
+            display: block;
+        }
+        #reasons {
+            font-size: 13px;
+            color: #475569;
+            text-align: left;
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            min-height: 20px;
+        }
+
+        /* Button */
+        #reScanBtn {
+            width: 100%;
+            padding: 10px;
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        #reScanBtn:hover { background-color: #2563eb; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="icons/icon48.png" alt="PhishGuard" class="logo">
+        <div style="font-size: 14px; font-weight: bold;">AI PhishGuard Pro</div>
+        <span id="current-url">Detecting URL...</span>
+    </div>
+
+    <div id="status" class="status-box loading">🔍 ANALYZING...</div>
+
+    <div class="meter-container">
+        <div class="meter-label">AI RISK LEVEL</div>
+        <div class="meter-bg">
+            <div id="risk-bar"></div>
+        </div>
+    </div>
+
+    <div id="reasons">Checking security layers...</div>
+
+    <button id="reScanBtn">Re-Scan Page</button>
+
+    <script src="popup.js"></script>
+</body>
+</html>
